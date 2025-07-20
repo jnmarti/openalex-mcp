@@ -1,8 +1,9 @@
 from typing import Any
-import httpx
-from mcp.server.fastmcp import FastMCP
 from logging import Logger
 import urllib.parse
+import json
+import httpx
+from mcp.server.fastmcp import FastMCP
 logger = Logger(__name__)
 
 # Initialize FastMCP server
@@ -45,11 +46,9 @@ async def search_works(query: str) -> str:
     filter=f"filter=title_and_abstract.search:{encoded_query}"
     select=f"select={','.join(fields)}"
 
-    url = f"{OPENALEX_WORKS_BASE}?{filter}&{select}"
+    url = f"{OPENALEX_WORKS_BASE}?{filter}&{select}&per-page=5"
     response = await make_request(url)
-    if not response.get("metadata", {}).get("count"):
-        return None
-    return response
+    return json.dumps(response,separators=(',',':'), ensure_ascii=False)
 
 @mcp.tool()
 async def get_paper(openalex_id: str) -> str:
@@ -59,11 +58,20 @@ async def get_paper(openalex_id: str) -> str:
         openalex_id: The OpenAlex ID of the work (e.g. W4287168995, W2800811598) 
     """
 
-    url = f"{OPENALEX_WORKS_BASE}/{openalex_id}"
+    fields = [
+        "id",
+        "title",
+        "publication_date",
+        "type",
+        "authorships",
+        "referenced_works",
+
+    ]
+    select = f"select={','.join(fields)}"
+
+    url = f"{OPENALEX_WORKS_BASE}/{openalex_id}?{select}"
     response = await make_request(url)
-    if not response.get("metadata", {}).get("count"):
-        return None
-    return response
+    return json.dumps(response,separators=(',',':'), ensure_ascii=False)
     
 
 if __name__ == "__main__":
