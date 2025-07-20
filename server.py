@@ -48,7 +48,7 @@ async def search_works(query: str) -> str:
 
     url = f"{OPENALEX_WORKS_BASE}?{filter}&{select}&per-page=5"
     response = await make_request(url)
-    return json.dumps(response,separators=(',',':'), ensure_ascii=False)
+    return json.dumps(response["results"], separators=(',',':'), ensure_ascii=False)
 
 @mcp.tool()
 async def get_paper(openalex_id: str) -> str:
